@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\User;
+use Illuminate\Support\Facades\Gate;
 
 describe('shared auth props', function () {
     describe('guest', function () {
@@ -59,6 +60,19 @@ describe('shared auth props', function () {
 
             $response->assertInertia(
                 fn ($page) => $page->missing('auth.user.password')
+            );
+        });
+
+        test('auth.can reflects a denied gate', function () {
+            Gate::define('deleteAccount', fn (User $user): bool => false);
+            $user = User::factory()->create();
+
+            $response = $this->actingAs($user)->get('/');
+
+            $response->assertInertia(
+                fn ($page) => $page
+                    ->where('auth.can.updateProfile', true)
+                    ->where('auth.can.deleteAccount', false)
             );
         });
 

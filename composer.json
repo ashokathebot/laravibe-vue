@@ -21,26 +21,28 @@
     ],
     "require": {
         "php": "^8.4",
-        "inertiajs/inertia-laravel": "^3.0",
-        "laravel/framework": "^13.0",
+        "inertiajs/inertia-laravel": "^3.5",
+        "laravel/fortify": "^1.37",
+        "laravel/framework": "^13.38",
         "laravel/tinker": "^3.0",
-        "laravel/wayfinder": "^0.1.16"
+        "laravel/wayfinder": "^0.1.23",
+        "thesoftpulze/laravibe-standards": "^0.5"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^3.7",
-        "fakerphp/faker": "^1.23",
-        "larastan/larastan": "^3.0",
-        "laravel/boost": "^v2.0.0",
-        "laravel/pail": "^1.2.2",
-        "laravel/pint": "^1.18",
-        "laravel/sail": "^1.41",
-        "mockery/mockery": "^1.6",
-        "nunomaduro/collision": "^8.6",
-        "nunomaduro/pao": "^1.0",
-        "pestphp/pest": "^4.0",
-        "pestphp/pest-plugin-laravel": "^4.0",
-        "phpunit/phpunit": "^12.0",
-        "rector/rector": "^2.4"
+        "fakerphp/faker": "^1.24",
+        "larastan/larastan": "^3.13",
+        "laravel/boost": "^2.10",
+        "laravel/pail": "^1.2.7",
+        "laravel/pao": "^1.0.6",
+        "laravel/pint": "^1.32",
+        "laravel/sail": "^1.69",
+        "mockery/mockery": "^1.6.15",
+        "nunomaduro/collision": "^8.9.5",
+        "pestphp/pest": "^5.3",
+        "pestphp/pest-plugin-laravel": "^5.0",
+        "phpunit/phpunit": "^13.4",
+        "rector/rector": "^2.7"
     },
     "autoload": {
         "psr-4": {
@@ -59,66 +61,65 @@
         }
     },
     "scripts": {
-        "post-autoload-dump": [
-            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php artisan package:discover --ansi"
+        "setup": [
+            "composer install",
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
+            "@php artisan key:generate",
+            "@php artisan migrate --force",
+            "npm install",
+            "npm run build"
         ],
-        "post-update-cmd": [
-            "@php artisan vendor:publish --tag=laravel-assets --ansi --force",
-            "Illuminate\\Foundation\\ComposerScripts::postUpdate",
-            "@php artisan ide-helper:generate",
-            "@php artisan ide-helper:meta",
-            "@php artisan boost:update --ansi --discover"
-        ],
-        "post-root-package-install": [
-            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
-        ],
-        "post-create-project-cmd": [
-            "@php artisan key:generate --ansi",
-            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
-            "@php artisan migrate --graceful --ansi"
+        "dev": [
+            "Composer\\Config::disableProcessTimeout",
+            "@php artisan dev"
         ],
         "queue": "@php artisan queue:listen --tries=1 --timeout=0 --queue=default",
         "logs": "@php artisan pail -v --timeout=0",
         "vite": "npm run dev",
-        "dev": [
-            "Composer\\Config::disableProcessTimeout",
-            "npx concurrently -c \"#fdba74,#c4b5fd,#fb7185\" \"npm run dev\" \"php artisan queue:listen --tries=1 --timeout=0 --queue=default\" \"php artisan pail -v --timeout=0\""
+        "test": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test --compact"
         ],
-        "phpstan": "./vendor/bin/phpstan analyze --memory-limit=512M",
+        "test:coverage": [
+            "@php artisan config:clear --ansi",
+            "@php artisan test --compact --coverage"
+        ],
         "pest": "./vendor/bin/pest --compact",
         "pest:coverage": "./vendor/bin/pest --coverage --compact",
-        "test": "@php artisan test --compact",
-        "test:coverage": "@pest:coverage",
-        "pint:check": "./vendor/bin/pint --test",
-        "pint": "./vendor/bin/pint",
-        "prettier:check": "npm run format:check",
-        "prettier": "npm run format",
-        "format:check": [
-            "@pint:check",
-            "@prettier:check"
-        ],
-        "format": [
-            "@pint",
-            "@prettier"
-        ],
-        "eslint": "npm run lint",
-        "eslint:check": "npx eslint .",
+        "phpstan": "./vendor/bin/phpstan analyse --memory-limit=512M",
+        "pint": "./vendor/bin/pint --parallel",
+        "pint:check": "./vendor/bin/pint --parallel --test",
         "rector": "./vendor/bin/rector",
         "rector:check": "./vendor/bin/rector --dry-run",
+        "format": [
+            "@pint",
+            "npm run format"
+        ],
+        "format:check": [
+            "@pint:check",
+            "npm run format:check"
+        ],
         "lint": [
             "@rector",
-            "@eslint"
+            "npm run lint"
         ],
         "lint:check": [
             "@rector:check",
-            "@eslint:check"
+            "npm run lint:check"
         ],
-        "review": [
+        "types:check": [
+            "@phpstan",
+            "npm run types:check"
+        ],
+        "ci:check": [
+            "Composer\\Config::disableProcessTimeout",
             "@lint:check",
             "@format:check",
-            "@test",
-            "@phpstan"
+            "@types:check",
+            "@test"
+        ],
+        "review": [
+            "@ci:check"
         ],
         "build": "npm run build",
         "build:ssr": "npm run build:ssr",
@@ -128,7 +129,27 @@
             "@update:composer",
             "@update:npm"
         ],
-        "logs:delete": "find storage/logs -name \"*.log\" -delete"
+        "logs:delete": "find storage/logs -name \"*.log\" -delete",
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ],
+        "post-update-cmd": [
+            "@php artisan vendor:publish --tag=laravel-assets --ansi --force",
+            "@php artisan ide-helper:generate",
+            "@php artisan ide-helper:meta"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi",
+            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
+            "@php artisan migrate --graceful --ansi"
+        ],
+        "pre-package-uninstall": [
+            "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
+        ]
     },
     "extra": {
         "laravel": {

@@ -1,6 +1,6 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "softpulze/laravibe-vue",
+    "name": "thesoftpulze/laravibe-vue",
     "type": "project",
     "description": "Open-source Laravel + Vue 3 starter kit with Inertia, Vite, Tailwind CSS, Shadcn Vue, and reusable utilities—optimized for clean structure and fast development. Build your app, skip the boilerplate.",
     "keywords": [

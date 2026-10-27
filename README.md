@@ -41,8 +41,8 @@ Made by [The SoftPulze](https://softpulze.com)
 Requires PHP 8.4+ and Node.js 22+.
 
 ```bash
-laravel new my-app --using=softpulze/laravibe-vue
-# or: composer create-project softpulze/laravibe-vue my-app
+laravel new my-app --using=thesoftpulze/laravibe-vue
+# or: composer create-project thesoftpulze/laravibe-vue my-app
 
 cd my-app
 npm install

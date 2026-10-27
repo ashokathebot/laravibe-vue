@@ -13,10 +13,21 @@
         "open-source"
     ],
     "license": "MIT",
+    "homepage": "https://softpulze.com",
+    "support": {
+        "issues": "https://github.com/thesoftpulze/laravibe-vue/issues",
+        "source": "https://github.com/thesoftpulze/laravibe-vue"
+    },
     "authors": [
         {
+            "name": "The SoftPulze",
+            "homepage": "https://softpulze.com"
+        },
+        {
             "name": "Ashok Barua",
-            "email": "ashokbaruaakas@gmail.com"
+            "email": "ashokbaruaakas@gmail.com",
+            "homepage": "https://ashokbaruaakas.com",
+            "role": "Maintainer"
         }
     ],
     "require": {
@@ -36,7 +47,6 @@
         "laravel/pail": "^1.2.7",
         "laravel/pao": "^1.0.6",
         "laravel/pint": "^1.32",
-        "laravel/sail": "^1.69",
         "mockery/mockery": "^1.6.15",
         "nunomaduro/collision": "^8.9.5",
         "pestphp/pest": "^5.3",

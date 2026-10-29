@@ -197,6 +197,15 @@ it('can add toast to session with custom type when throw ToastException', functi
         ->toHaveKey('message', 'Heads up');
 });
 
+it('preserves positional exception codes and previous exceptions', function () {
+    $previous = new RuntimeException('Original failure');
+    $exception = new ToastException('Failed', ToastType::WARNING, 42, $previous);
+
+    expect($exception->getMessage())->toBe('Failed')
+        ->and($exception->getCode())->toBe(42)
+        ->and($exception->getPrevious())->toBe($previous);
+});
+
 it('delivers queued toasts as inertia flash data on the next page', function () {
     $user = App\Models\User::factory()->create();
 
@@ -206,4 +215,81 @@ it('delivers queued toasts as inertia flash data on the next page', function () 
         ->assertInertia(fn (Inertia\Testing\AssertableInertia $page) => $page
             ->hasFlash('toasts', [['type' => 'success', 'message' => 'Profile updated successfully.']])
             ->missing('toasts'));
+});
+
+it('can hydrate a description and serializes it after the message', function () {
+    $payload = ToastPayload::fromArray(['type' => 'success', 'message' => 'Saved', 'description' => 'Your changes are live.']);
+
+    expect($payload->toArray())->toBe([
+        'type' => 'success',
+        'message' => 'Saved',
+        'description' => 'Your changes are live.',
+    ]);
+});
+
+it('throws when the toast duration is negative', function () {
+    ToastPayload::fromArray(['type' => 'info', 'message' => 'FYI', 'duration' => -1]);
+})->throws(InvalidArgumentException::class, 'Expected a non-negative number of milliseconds.');
+
+it('creates a visit action for same-tab inertia visits', function () {
+    expect(ToastActionPayload::visit('/account', 'View'))
+        ->type->toBe(ToastActionType::VISIT)
+        ->payload->toBe('/account')
+        ->label->toBe('View');
+});
+
+it('queues a toast built with the fluent builder once it goes out of scope', function () {
+    toast()->success('Saved')
+        ->description('Your changes are live.')
+        ->action(toastActionVisit('/account', 'View'))
+        ->persistent()
+        ->dismissible(false);
+
+    expect(toast()->pull())->toBe([[
+        'type' => 'success',
+        'message' => 'Saved',
+        'description' => 'Your changes are live.',
+        'actions' => [['type' => 'visit', 'payload' => '/account', 'label' => 'View']],
+        'duration' => 0,
+        'dismissible' => false,
+    ]]);
+});
+
+it('queues a builder toast only once when sent explicitly', function () {
+    $pending = toast()->info('Heads up');
+    $pending->send();
+    unset($pending);
+
+    expect(toast()->pull())->toHaveCount(1);
+});
+
+it('preserves non-negative builder durations', function (int $duration) {
+    $pending = toast()->info('Heads up')->duration($duration);
+    $pending->send();
+
+    expect(toast()->pull()[0])->toHaveKey('duration', $duration);
+})->with([0, 1, 7500]);
+
+it('rejects negative builder durations without changing the previous duration', function () {
+    $pending = toast()->info('Heads up')->duration(7500);
+
+    expect(fn () => $pending->duration(-1))
+        ->toThrow(InvalidArgumentException::class, 'Expected a non-negative number of milliseconds.');
+
+    $pending->send();
+
+    expect(toast()->pull()[0])->toHaveKey('duration', 7500);
+});
+
+it('adds the description and actions of a ToastException to the toast', function () {
+    $request = Request::create('/test');
+    $session = app('session');
+    $session->start();
+    $request->setLaravelSession($session->driver());
+
+    (new ToastException('Payment failed', description: 'Your card was declined.', actions: [toastActionVisit('/billing', 'Update card')]))->render($request);
+
+    expect(toast()->pull()[0])
+        ->toHaveKey('description', 'Your card was declined.')
+        ->toHaveKey('actions', [['type' => 'visit', 'payload' => '/billing', 'label' => 'Update card']]);
 });

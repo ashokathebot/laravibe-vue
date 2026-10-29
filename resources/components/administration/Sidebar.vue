@@ -12,37 +12,18 @@ import {
     useSidebar,
 } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
-import { type NavItem } from '@/types'
 import { dashboard as administrationDashboard } from '@/routes/administration'
-import administrationUsers from '@/routes/administration/users'
 import { Link } from '@inertiajs/vue3'
-import { CircleGauge, FolderGit, Users } from '@lucide/vue'
+import { computed } from 'vue'
 import NavFooter from './NavFooter.vue'
 import NavMain from './NavMain.vue'
 import NavUser from './NavUser.vue'
+import { useAdministrationNavigation } from './navigation'
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: administrationDashboard.url(),
-        icon: CircleGauge,
-    },
-    {
-        title: 'Users',
-        href: administrationUsers.index.url(),
-        icon: Users,
-    },
-]
+const { mainNavGroups, footerNavItems } = useAdministrationNavigation()
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Github Repo',
-        href: 'https://github.com/thesoftpulze/laravibe-vue',
-        icon: FolderGit,
-    },
-]
-
-const { open } = useSidebar()
+const { state } = useSidebar()
+const expanded = computed(() => state.value === 'expanded')
 </script>
 
 <template>
@@ -50,9 +31,9 @@ const { open } = useSidebar()
         <SidebarHeader>
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton size="lg" as-child :class="cn('items-center', !open && 'justify-center')">
+                    <SidebarMenuButton size="lg" as-child :class="cn('items-center', !expanded && 'justify-center')">
                         <Link :href="administrationDashboard.url()">
-                            <AppLogo :icon-only="!open" :class="open ? 'text-lg' : 'text-xl'" />
+                            <AppLogo :icon-only="!expanded" :class="expanded ? 'text-lg' : 'text-xl'" />
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -60,7 +41,7 @@ const { open } = useSidebar()
         </SidebarHeader>
 
         <SidebarContent>
-            <NavMain :items="mainNavItems" />
+            <NavMain :groups="mainNavGroups" />
         </SidebarContent>
 
         <SidebarFooter>

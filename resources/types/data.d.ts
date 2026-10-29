@@ -64,3 +64,19 @@ export interface UserStatistics {
     unverified: number
     joinedThisWeek: number
 }
+
+export interface GeneralSettings {
+    siteName: Nullable<string>
+    tagline: Nullable<string>
+    supportEmail: Nullable<string>
+}
+
+export interface AuthenticationSettings {
+    allowRegistration: boolean
+    requireEmailVerification: boolean
+}
+
+export interface MailSettings {
+    fromName: Nullable<string>
+    fromAddress: Nullable<string>
+}

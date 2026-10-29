@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Models\User;
+use App\Settings\AuthenticationSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Middleware;
@@ -40,6 +41,7 @@ final class HandleInertiaRequests extends Middleware
                 'user' => $user?->toResource(),
                 'can' => $this->resolveAbilities($user),
             ],
+            'canRegister' => app(AuthenticationSettings::class)->allowRegistration,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }
@@ -59,6 +61,7 @@ final class HandleInertiaRequests extends Middleware
                 'updateProfile' => false,
                 'deleteAccount' => false,
                 'accessAdministration' => false,
+                'manageSettings' => false,
             ];
         }
 
@@ -68,6 +71,7 @@ final class HandleInertiaRequests extends Middleware
             'updateProfile' => $gate->allows('updateProfile'),
             'deleteAccount' => $gate->allows('deleteAccount'),
             'accessAdministration' => $gate->allows('accessAdministration'),
+            'manageSettings' => $gate->allows('manageSettings'),
         ];
     }
 }
